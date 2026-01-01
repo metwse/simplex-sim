@@ -40,8 +40,6 @@ class ManchesterEncoder(Component):
         cycle_pos = time % self.bit_duration
         is_first_half = cycle_pos < (self.bit_duration / 2.0)
 
-        voltage = 0.0
-
         if is_logic_1:
             voltage = -1.0 if is_first_half else 1.0
         else:

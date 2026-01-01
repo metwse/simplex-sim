@@ -55,8 +55,6 @@ class Simulation:
         self.input_wire.write_async(self.input_function(self.current_time),
                                     self.current_time)
 
-        self.current_time += self.dt
-
         updates = set(self.input_wire.effects)
         while len(updates) > 0:
             to_update = list(updates)
@@ -69,6 +67,8 @@ class Simulation:
                 if wire.update:
                     wire.update = False
                     updates.update(wire.effects)
+
+        self.current_time += self.dt
 
     def reset(self):
         self.current_time = 0.0
