@@ -1,6 +1,6 @@
-from src.ui.app import MainWindow
+from src.ui.app import App
 
 
 if __name__ == "__main__":
-    app = MainWindow()
+    app = App()
     app.mainloop()

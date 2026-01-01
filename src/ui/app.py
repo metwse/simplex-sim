@@ -3,13 +3,17 @@ from .panels.controls import ControlPanel
 from .panels.plotting import PlotPanel
 
 from src.core.engine import Simulation, Wire
+from src.utils.graph_gen import generate_topology_graph
 from src.modules.generators import create_digital_signal
 from src.modules.line_coding import ManchesterEncoder, NRZLEncoder
 
 import tkinter as tk
+from tkinter import ttk
+import io
+from PIL import Image, ImageTk
 
 
-class MainWindow(tk.Tk):
+class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("simplexsim")
@@ -22,8 +26,10 @@ class MainWindow(tk.Tk):
         self._setup_default_simulation()
 
     def _init_layout(self):
-        self.controls = ControlPanel(self, on_start=self.start_simulation,
-                                     on_stop=self.stop_simulation)
+        self.controls = ControlPanel(self,
+                                     on_start=self.start_simulation,
+                                     on_stop=self.stop_simulation,
+                                     on_visualize=self.visualize_simulation)
         self.controls.pack(side=tk.LEFT, fill=tk.Y)
 
         self.plotting = PlotPanel(self)
@@ -45,10 +51,25 @@ class MainWindow(tk.Tk):
         )
 
         self.sim_engine.add_component(
-            ManchesterEncoder(self.w_input, self.w_encoded,
+            ManchesterEncoder(self.w_input, self.w_encoded2,
                               baud_rate=baud_rate))
         self.sim_engine.add_component(
-            NRZLEncoder(self.w_input, self.w_encoded2))
+            NRZLEncoder(self.w_input, self.w_encoded))
+
+    def visualize_simulation(self):
+        dot = generate_topology_graph(self.sim_engine)
+
+        img = Image.open(io.BytesIO(dot.pipe()))
+
+        top = tk.Toplevel(self)
+        top.title("Simulation Topology")
+
+        tk_img = ImageTk.PhotoImage(img)
+
+        lbl = ttk.Label(top, image=tk_img)
+        lbl.pack(padx=10, pady=10)
+
+        lbl.image = tk_img  # type: ignore
 
     def start_simulation(self, duration: float):
         """Called by ControlPanel when Start is clicked."""
@@ -69,14 +90,14 @@ class MainWindow(tk.Tk):
     def monitor_simulation(self):
         """Polls the thread for progress."""
         if self.sim_thread:
-            # Update Progress Bar
+            # update progress bar
             self.controls.update_progress(self.sim_thread.progress)
 
             if self.sim_thread.is_alive():
-                # Re-schedule check
+                # re-schedule check
                 self.after(100, self.monitor_simulation)
             else:
-                # Finished
+                # finished
                 self.controls.set_state_stopped()
                 self.plotting.plot_wires(self.wires)
         else:

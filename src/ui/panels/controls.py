@@ -10,11 +10,13 @@ class ControlPanel(ttk.Frame):
     def __init__(self,
                  parent,
                  on_start: Callable[[float], None],
-                 on_stop: Callable[[], None]):
+                 on_stop: Callable[[], None],
+                 on_visualize: Callable):
         super().__init__(parent, padding="10")
 
         self.on_start = on_start
         self.on_stop = on_stop
+        self.on_visualize = on_visualize
 
         self._init_widgets()
 
@@ -48,6 +50,13 @@ class ControlPanel(ttk.Frame):
         self.progress_bar = ttk.Progressbar(self, orient=tk.HORIZONTAL,
                                             mode='determinate')
         self.progress_bar.pack(fill=tk.X, pady=10)
+
+        # Visualization Button
+        ttk.Separator(self, orient='horizontal').pack(fill='x', pady=10)
+
+        self.btn_viz = ttk.Button(self, text="Show Topology Graph",
+                                  command=self.on_visualize)
+        self.btn_viz.pack(fill=tk.X, pady=5)
 
     def _handle_start(self):
         """Validates input and triggers the start callback."""
