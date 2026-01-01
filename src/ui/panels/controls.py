@@ -52,9 +52,9 @@ class ControlPanel(ttk.Frame):
                                  self._handle_scenario_change)
 
         # Duration Input
-        ttk.Label(self, text="Duration (sec):").pack(anchor=tk.W)
-        self.entry_duration = ttk.Entry(self)
-        self.entry_duration.insert(0, "1.0")
+        ttk.Label(lf_scenario, text="Duration (sec):").pack(anchor=tk.W)
+        self.entry_duration = ttk.Entry(lf_scenario)
+        self.entry_duration.insert(0, "5.0")
         self.entry_duration.pack(fill=tk.X, pady=(0, 10))
 
         # Buttons

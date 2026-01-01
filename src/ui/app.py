@@ -1,8 +1,8 @@
-from src.simulations.line_coding import line_coding
 from .workers import SimulationThread
 from .panels.controls import ControlPanel
 from .panels.plotting import PlotPanel
 
+from src.simulations.line_coding import line_coding
 from src.utils.graph_gen import generate_topology_graph
 
 import tkinter as tk
@@ -27,7 +27,6 @@ class App(tk.Tk):
 
         first_scenario_name = list(self.scenarios.keys())[0]
         self.load_scenario(first_scenario_name)
-        self.wires_to_plot = []
 
     def load_scenario(self, scenario_name):
         """1. Build the Sim, 2. Update Wire Checkboxes"""
@@ -48,6 +47,8 @@ class App(tk.Tk):
         self.wires_to_plot = [
             w for w in self.wires if w.name in visible_wire_names
         ]
+
+        self.plotting.plot_wires(self.wires_to_plot)
 
     def visualize_simulation(self):
         dot = generate_topology_graph(self.sim_engine)
@@ -109,4 +110,3 @@ class App(tk.Tk):
 
         self.plotting = PlotPanel(self)
         self.plotting.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
