@@ -6,7 +6,8 @@ from src.modules.line_coding import ManchesterEncoder, NRZIEncoder, \
     PseudoternaryEncoder
 
 
-def line_coding():
+def line_coding(baud_rate: float = 5.0,
+                bitstream: str = "01001100011011101010"):
     w_input = Wire("Raw Input")
     w_nrzl_encoded = Wire("NRZL Encoded")
     w_nrzi_encoded = Wire("NRZI Encoded")
@@ -15,9 +16,7 @@ def line_coding():
     w_differential_manchester_encoded = Wire("Differential Manchester Encoded")
     w_pseudoternary_encoded = Wire("Pseudoternary Encoded")
 
-    baud_rate = 5.0
-    input_func = create_digital_signal("01001100011011101010",
-                                       baud_rate=baud_rate)
+    input_func = create_digital_signal(bitstream, baud_rate=baud_rate)
 
     sim = Simulation(
         input_wire=w_input,

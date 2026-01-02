@@ -2,7 +2,7 @@ from .workers import SimulationThread
 from .panels.controls import ControlPanel
 from .panels.plotting import PlotPanel
 
-from src.simulations.line_coding import line_coding
+from src.simulations import SCENARIOS
 from src.utils.graph_gen import generate_topology_graph
 
 import tkinter as tk
@@ -15,31 +15,38 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.scenarios = {
-            "Line Coding": line_coding,
-        }
-
         self.title("simplexsim")
         self.geometry("1200x800")
 
         # Initialize Layout
         self._init_layout()
 
-        first_scenario_name = list(self.scenarios.keys())[0]
-        self.load_scenario(first_scenario_name)
+        self.load_scenario(list(SCENARIOS.keys())[0])
 
     def load_scenario(self, scenario_name):
-        """1. Build the Sim, 2. Update Wire Checkboxes"""
-        # Execute the specific setup function
-        setup_func = self.scenarios[scenario_name]
-        self.sim_engine = setup_func()
-        self.wires_to_plot = self.wires = self.sim_engine.wires
+        self.scenario = SCENARIOS[scenario_name]
 
-        # Extract wire names and update ControlPanel
+        defaults = {
+            k: v.get('default')
+            for k, v in self.scenario.get('parameters', {}).items()
+        }
+
+        self.rebuild_simulation(defaults)
+
+        # Update UI components that depend on the topology
         wire_names = [w.name for w in self.wires]
         self.controls.populate_wire_list(wire_names)
+        self.controls.generate_param_fields(self.scenario['parameters'])
+        self.controls.set_scenario_description(self.scenario['description'])
 
-        # Clear plot
+    def rebuild_simulation(self, parameters: dict):
+        """Builds the SimulationEngine using the provided parameters."""
+
+        self.sim_engine = self.scenario['setup'](**parameters)
+        self.wires = self.sim_engine.wires
+        self.wires_to_plot = self.wires
+
+        # Reset plot
         self.plotting.plot_wires([])
 
     def update_plot_visibility(self, visible_wire_names):
@@ -67,7 +74,8 @@ class App(tk.Tk):
 
     def start_simulation(self, duration: float):
         """Called by ControlPanel when Start is clicked."""
-        self.sim_engine.reset()
+        params = self.controls.get_param_values()
+        self.rebuild_simulation(params)
 
         self.controls.set_state_running()
 
@@ -100,7 +108,7 @@ class App(tk.Tk):
     def _init_layout(self):
         self.controls = \
             ControlPanel(self,
-                         scenario_list=list(self.scenarios.keys()),
+                         scenario_list=list(SCENARIOS.keys()),
                          on_scenario_change=self.load_scenario,
                          on_start=self.start_simulation,
                          on_stop=self.stop_simulation,
