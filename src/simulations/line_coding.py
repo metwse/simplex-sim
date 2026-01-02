@@ -16,7 +16,7 @@ def line_coding():
     w_pseudoternary_encoded = Wire("Pseudoternary Encoded")
 
     baud_rate = 5.0
-    input_func = create_digital_signal("0110101111010001001110110",
+    input_func = create_digital_signal("01001100011011101010",
                                        baud_rate=baud_rate)
 
     sim = Simulation(

@@ -17,9 +17,9 @@ class NRZLEncoder(Component):
         inp = self.input_wire.read()
 
         if inp > 0.5:
-            self.output_wire.write(self.high, time)
-        else:
             self.output_wire.write(self.low, time)
+        else:
+            self.output_wire.write(self.high, time)
 
 
 class NRZIEncoder(Component):
@@ -37,6 +37,9 @@ class NRZIEncoder(Component):
         self.high = high_level
         self.low = low_level
 
+        self.reset()
+
+    def reset(self):
         self.current_level = self.low
         self.last_bit_index = -1
 
@@ -103,6 +106,9 @@ class BipolarAMIEncoder(Component):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
 
+        self.reset()
+
+    def reset(self):
         # State tracking
         # Start assuming last was negative, so first 1 is positive
         self.last_polarity = -1.0
@@ -140,7 +146,9 @@ class PseudoternaryEncoder(Component):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
 
-        # State tracking
+        self.reset()
+
+    def reset(self):
         self.last_polarity = -1.0
         self.current_voltage = 0.0
         self.last_bit_index = -1
@@ -177,7 +185,9 @@ class DifferentialManchesterEncoder(Component):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
 
-        # State tracking
+        self.reset()
+
+    def reset(self):
         self.previous_end_level = -1.0  # Assume previous bit ended low
         self.current_start_level = -1.0
         self.last_bit_index = -1

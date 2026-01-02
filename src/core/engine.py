@@ -74,3 +74,5 @@ class Simulation:
         self.current_time = 0.0
         for wire in self.wires:
             wire.reset()
+        for component in self.components:
+            component.reset()

@@ -20,13 +20,9 @@ def create_digital_signal(bitstream: str,
         if time < 0:
             return low
 
-        bit_index = int(time / bit_duration)
+        bit_index = int(time / bit_duration) % total_bits
 
-        if bit_index < total_bits:
-            bit = bitstream[bit_index]
-            return high if bit == '1' else low
-        else:
-            return low
+        return high if bitstream[bit_index] == '1' else low
 
     return signal_func
 

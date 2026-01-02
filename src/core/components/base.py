@@ -62,3 +62,6 @@ class Component:
         """
         _ = time
         pass
+
+    def reset(self):
+        pass
