@@ -2,26 +2,34 @@ from .types import Scenario
 
 from src.core.components.base import Wire
 from src.core.engine import Simulation
-from src.modules.generators import create_sine_wave
 from src.modules.analog2digital_encoders import \
     DeltaModulationEncoder, PCMEncoder
 from src.modules.analog2digital_decoders import \
     DeltaModulationDecoder, PCMDecoder
 
-from typing import Dict
+from typing import Dict, Callable
+import math
+
+
+DEFAULT_SIGNAL = 'lambda t: math.sin(2 * math.pi * t)'
+
+
+def parse_signal_func(func_str: str) -> Callable[[float], float]:
+    """Parses a lambda string into a callable function."""
+    return eval(func_str, {'math': math, '__builtins__': {}})
 
 
 def analog_to_digital(sample_rate: float = 20.0,
-                      frequency: float = 2.0,
                       n_bits: int = 4,
-                      step_size: float = 0.1):
+                      step_size: float = 0.1,
+                      signal_func: str = DEFAULT_SIGNAL):
     """Showcase scenario: displays Delta Modulation and PCM side by side."""
 
     w_input = Wire("Analog Input")
     w_dm = Wire("Delta Modulation Encoded")
     w_pcm = Wire("PCM Encoded")
 
-    input_func = create_sine_wave(frequency=frequency)
+    input_func = parse_signal_func(signal_func)
 
     sim = Simulation(
         input_wire=w_input,
@@ -40,15 +48,15 @@ def analog_to_digital(sample_rate: float = 20.0,
 
 
 def dm_codec(sample_rate: float = 20.0,
-             frequency: float = 2.0,
-             step_size: float = 0.1):
+             step_size: float = 0.1,
+             signal_func: str = DEFAULT_SIGNAL):
     """Delta Modulation encoder + decoder chain."""
 
     w_input = Wire("Analog Input")
     w_encoded = Wire("DM Encoded")
     w_decoded = Wire("DM Decoded")
 
-    input_func = create_sine_wave(frequency=frequency)
+    input_func = parse_signal_func(signal_func)
 
     sim = Simulation(
         input_wire=w_input,
@@ -67,15 +75,15 @@ def dm_codec(sample_rate: float = 20.0,
 
 
 def pcm_codec(sample_rate: float = 20.0,
-              frequency: float = 2.0,
-              n_bits: int = 4):
+              n_bits: int = 4,
+              signal_func: str = DEFAULT_SIGNAL):
     """PCM encoder + decoder chain."""
 
     w_input = Wire("Analog Input")
     w_encoded = Wire("PCM Encoded")
     w_decoded = Wire("PCM Decoded")
 
-    input_func = create_sine_wave(frequency=frequency)
+    input_func = parse_signal_func(signal_func)
 
     sim = Simulation(
         input_wire=w_input,
@@ -94,14 +102,14 @@ def pcm_codec(sample_rate: float = 20.0,
 
 
 A2D_SCENARIOS: Dict[str, Scenario] = {
-    "Analog to Digital Conversion": {
+    "Analog to Digital Encoding": {
         'setup': analog_to_digital,
         'description': "Showcases Delta Modulation and PCM encoding.",
         'parameters': {
             'sample_rate': {'type': float, 'default': 20.0},
-            'frequency': {'type': float, 'default': 2.0},
             'n_bits': {'type': int, 'default': 4},
-            'step_size': {'type': float, 'default': 0.1}
+            'step_size': {'type': float, 'default': 0.1},
+            'signal_func': {'type': str, 'default': DEFAULT_SIGNAL}
         }
     },
     "Analog to Digital: Delta Modulation Codec": {
@@ -109,8 +117,8 @@ A2D_SCENARIOS: Dict[str, Scenario] = {
         'description': "Delta Modulation encoding and decoding chain.",
         'parameters': {
             'sample_rate': {'type': float, 'default': 20.0},
-            'frequency': {'type': float, 'default': 2.0},
-            'step_size': {'type': float, 'default': 0.1}
+            'step_size': {'type': float, 'default': 0.1},
+            'signal_func': {'type': str, 'default': DEFAULT_SIGNAL}
         }
     },
     "Analog to Digital: PCM Codec": {
@@ -118,8 +126,8 @@ A2D_SCENARIOS: Dict[str, Scenario] = {
         'description': "PCM encoding and decoding chain.",
         'parameters': {
             'sample_rate': {'type': float, 'default': 20.0},
-            'frequency': {'type': float, 'default': 2.0},
-            'n_bits': {'type': int, 'default': 4}
+            'n_bits': {'type': int, 'default': 4},
+            'signal_func': {'type': str, 'default': DEFAULT_SIGNAL}
         }
     }
 }
