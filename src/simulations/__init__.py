@@ -1,4 +1,5 @@
 from .digital2digital_simulations import CODEC_SCENARIOS
+from .analog2digital_simulations import A2D_SCENARIOS
 from .line_coding import line_coding
 from .types import Scenario
 
@@ -15,5 +16,6 @@ SCENARIOS: Dict[str, Scenario] = {
             'bitstream': {'type': str, 'default': "01001100011011101010"}
         }
     },
-    **CODEC_SCENARIOS
+    **CODEC_SCENARIOS,
+    **A2D_SCENARIOS
 }
