@@ -1,9 +1,9 @@
 from src.core.components.base import Wire
 from src.core.engine import Simulation
 from src.modules.generators import create_digital_signal
-from src.modules.line_coding import ManchesterEncoder, NRZIEncoder, \
-    NRZLEncoder, BipolarAMIEncoder, DifferentialManchesterEncoder, \
-    PseudoternaryEncoder
+from src.modules.digital2digital_encoders import ManchesterEncoder, \
+    NRZIEncoder, NRZLEncoder, BipolarAMIEncoder, \
+    DifferentialManchesterEncoder, PseudoternaryEncoder
 
 
 def line_coding(baud_rate: float = 5.0,

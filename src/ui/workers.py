@@ -1,5 +1,6 @@
-import threading
 from src.core.engine import Simulation
+
+import threading
 
 
 class SimulationThread(threading.Thread):

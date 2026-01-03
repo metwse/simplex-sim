@@ -1,20 +1,8 @@
+from .digital2digital_simulations import CODEC_SCENARIOS
 from .line_coding import line_coding
+from .types import Scenario
 
-from typing import Callable, Dict, Generic, Type, TypeVar, TypedDict
-
-
-T = TypeVar('T')
-
-
-class ScenarioParamter(TypedDict, Generic[T]):
-    type: Type[T]
-    default: T
-
-
-class Scenario(TypedDict):
-    setup: Callable
-    description: str
-    parameters: Dict[str, ScenarioParamter]
+from typing import Dict
 
 
 SCENARIOS: Dict[str, Scenario] = {
@@ -27,4 +15,5 @@ SCENARIOS: Dict[str, Scenario] = {
             'bitstream': {'type': str, 'default': "01001100011011101010"}
         }
     },
+    **CODEC_SCENARIOS
 }

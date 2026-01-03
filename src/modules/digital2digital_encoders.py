@@ -5,11 +5,16 @@ class NRZLEncoder(Component):
     """Non-Return-to-Zero Level (NRZ-L).
 
     This is a level-based encoding, so it acts like a simple mapper.
+
+    baud_rate argument at __init__ is only for unifying encoder constructor
+    interface.
     """
 
     def __init__(self, input_wire: Wire, output_wire: Wire,
+                 baud_rate: float = 0.0,
                  high_level: float = 1.0, low_level: float = -1.0):
         super().__init__(input_wire, output_wire)
+        _ = baud_rate
         self.high = high_level
         self.low = low_level
 

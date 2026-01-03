@@ -36,9 +36,3 @@ def create_sine_wave(frequency: float,
         return amplitude * math.sin(2 * math.pi * frequency * time + phase)
 
     return signal_func
-
-
-def create_silence() -> SignalGenerator:
-    """0-generating empty signal."""
-
-    return lambda _: 0.0
