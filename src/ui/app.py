@@ -31,7 +31,7 @@ class App(tk.Tk):
             for k, v in self.scenario.get('parameters', {}).items()
         }
 
-        self.rebuild_simulation(defaults)
+        self.rebuild_simulation(defaults, False)
 
         # Update UI components that depend on the topology
         wire_names = [w.name for w in self.wires]
@@ -39,12 +39,21 @@ class App(tk.Tk):
         self.controls.generate_param_fields(self.scenario['parameters'])
         self.controls.set_scenario_description(self.scenario['description'])
 
-    def rebuild_simulation(self, parameters: dict):
+    def rebuild_simulation(self, parameters: dict,
+                           preserve_wires_to_plot: bool = True):
         """Builds the SimulationEngine using the provided parameters."""
+
+        wires_to_plot = [w.name for w in self.wires_to_plot] \
+            if preserve_wires_to_plot else None
 
         self.sim_engine = self.scenario['setup'](**parameters)
         self.wires = self.sim_engine.wires
-        self.wires_to_plot = self.wires
+
+        if wires_to_plot is not None:
+            self.wires_to_plot = [*filter(lambda w: w.name in wires_to_plot,
+                                          self.wires)]
+        else:
+            self.wires_to_plot = self.wires
 
         # Reset plot
         self.plotting.plot_wires([])
