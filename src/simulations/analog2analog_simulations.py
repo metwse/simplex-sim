@@ -35,7 +35,7 @@ def analog_to_analog(carrier_freq: float = 20.0,
     sim = Simulation(
         input_wire=w_input,
         input_function=input_func,
-        dt=0.001
+        dt=0.00001
     )
 
     sim.add_component(AMModulator(w_input, w_am,
@@ -64,7 +64,7 @@ def am_modem(carrier_freq: float = 20.0,
     sim = Simulation(
         input_wire=w_input,
         input_function=input_func,
-        dt=0.001
+        dt=0.0001
     )
 
     sim.add_component(AMModulator(w_input, w_modulated,
@@ -91,7 +91,7 @@ def fm_modem(carrier_freq: float = 20.0,
     sim = Simulation(
         input_wire=w_input,
         input_function=input_func,
-        dt=0.001
+        dt=0.00001
     )
 
     sim.add_component(FMModulator(w_input, w_modulated,
@@ -118,7 +118,7 @@ def pm_modem(carrier_freq: float = 20.0,
     sim = Simulation(
         input_wire=w_input,
         input_function=input_func,
-        dt=0.001
+        dt=0.00001
     )
 
     sim.add_component(PMModulator(w_input, w_modulated,

@@ -4,7 +4,7 @@ import math
 
 
 class AMDemodulator(Component):
-    """AM Demodulator using envelope detection."""
+    """AM Demodulator using envelope detection with low-pass filter."""
 
     def __init__(self,
                  input_wire: Wire,
@@ -18,8 +18,8 @@ class AMDemodulator(Component):
         self.reset()
 
     def reset(self):
-        self.envelope = 0.0
-        self.alpha = 0.1
+        self.envelope = 1.0
+        self.alpha = 0.02
 
     def tick(self, time: float):
         inp = abs(self.input_wire.read())
@@ -31,13 +31,13 @@ class AMDemodulator(Component):
 
 
 class FMDemodulator(Component):
-    """FM Demodulator using differentiation."""
+    """FM Demodulator using zero-crossing detection with smoothing."""
 
     def __init__(self,
                  input_wire: Wire,
                  output_wire: Wire,
                  carrier_freq: float,
-                 freq_deviation: float = 10.0):
+                 freq_deviation: float = 5.0):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
         self.freq_deviation = freq_deviation
@@ -45,25 +45,36 @@ class FMDemodulator(Component):
         self.reset()
 
     def reset(self):
-        self.last_value = 0.0
-        self.last_time = 0.0
-        self.output = 0.0
+        self.prev_value = 0.0
+        self.prev_time = 0.0
+        self.last_crossing_time = 0.0
+        self.inst_freq = self.carrier_freq
+        self.smoothed_output = 0.0
+        self.alpha = 0.05
 
     def tick(self, time: float):
         current = self.input_wire.read()
-        dt = time - self.last_time
 
-        if dt > 0:
-            derivative = (current - self.last_value) / dt
-            self.output = derivative / (2 * math.pi * self.freq_deviation)
+        if self.prev_value <= 0 < current:
+            if self.last_crossing_time > 0:
+                period = time - self.last_crossing_time
+                if period > 0:
+                    self.inst_freq = 1.0 / period
+            self.last_crossing_time = time
 
-        self.last_value = current
-        self.last_time = time
-        self.output_wire.write(self.output, time)
+        freq_offset = self.inst_freq - self.carrier_freq
+        normalized = freq_offset / self.freq_deviation
+
+        self.smoothed_output = (self.alpha * normalized +
+                                (1 - self.alpha) * self.smoothed_output)
+
+        self.prev_value = current
+        self.prev_time = time
+        self.output_wire.write(self.smoothed_output, time)
 
 
 class PMDemodulator(Component):
-    """PM Demodulator using phase comparison."""
+    """PM Demodulator using coherent detection."""
 
     def __init__(self,
                  input_wire: Wire,
@@ -80,7 +91,10 @@ class PMDemodulator(Component):
         ref_cos = math.cos(2 * math.pi * self.carrier_freq * time)
         ref_sin = math.sin(2 * math.pi * self.carrier_freq * time)
 
-        phase = math.atan2(-inp * ref_sin, inp * ref_cos)
-        message = phase / self.phase_deviation
+        i_component = inp * ref_cos
+        q_component = inp * ref_sin
 
+        phase = math.atan2(q_component, i_component)
+
+        message = phase / self.phase_deviation
         self.output_wire.write(message, time)
