@@ -2,13 +2,15 @@ from .types import Scenario
 
 from src.core.components.base import Wire
 from src.core.engine import Simulation
-from src.modules.generators import create_digital_signal
+from src.modules.generators import create_digital_signal, \
+    create_b8zs_signal, create_hdb3_signal
 from src.modules.digital2digital_encoders import ManchesterEncoder, \
     NRZIEncoder, NRZLEncoder, BipolarAMIEncoder, \
     DifferentialManchesterEncoder, PseudoternaryEncoder
 from src.modules.digital2digital_decoders import ManchesterDecoder, \
     NRZIDecoder, NRZLDecoder, BipolarAMIDecoder, \
     DifferentialManchesterDecoder, PseudoternaryDecoder
+from src.modules.scrambling_decoders import B8ZSDecoder, HDB3Decoder
 
 from typing import Dict
 from functools import partial
@@ -76,6 +78,48 @@ def generic_codec_setup(baud_rate: float, bitstream: str, Encoder, Decoder):
     return sim
 
 
+def b8zs_codec(baud_rate: float = 5.0,
+               bitstream: str = "10000000001"):
+    """B8ZS scrambler + descrambler chain."""
+
+    w_scrambled = Wire("B8ZS Scrambled")
+    w_decoded = Wire("B8ZS Decoded")
+
+    input_func = create_b8zs_signal(bitstream, baud_rate=baud_rate)
+
+    sim = Simulation(
+        input_wire=w_scrambled,
+        input_function=input_func,
+        dt=0.001
+    )
+
+    sim.add_component(B8ZSDecoder(w_scrambled, w_decoded,
+                                  baud_rate=baud_rate))
+
+    return sim
+
+
+def hdb3_codec(baud_rate: float = 5.0,
+               bitstream: str = "10000100001"):
+    """HDB3 scrambler + descrambler chain."""
+
+    w_scrambled = Wire("HDB3 Scrambled")
+    w_decoded = Wire("HDB3 Decoded")
+
+    input_func = create_hdb3_signal(bitstream, baud_rate=baud_rate)
+
+    sim = Simulation(
+        input_wire=w_scrambled,
+        input_function=input_func,
+        dt=0.001
+    )
+
+    sim.add_component(HDB3Decoder(w_scrambled, w_decoded,
+                                  baud_rate=baud_rate))
+
+    return sim
+
+
 CODEC_PAIRS = [
     [ManchesterEncoder, ManchesterDecoder],
     [NRZIEncoder, NRZIDecoder],
@@ -95,8 +139,25 @@ D2D_SCENARIOS: Dict[str, Scenario] = {
             'baud_rate': {'type': float, 'default': 5.0},
             'bitstream': {'type': str, 'default': "01001100011011101010"}
         }
-    }, **{
-        f"Digital to Digital: {enc.__name__.replace("Encoder", "")} Codec": {
+    },
+    "Digital to Digital: B8ZS Codec": {
+        'setup': b8zs_codec,
+        'description': "B8ZS scrambling and descrambling (8-zero substitution)",
+        'parameters': {
+            'baud_rate': {'type': float, 'default': 5.0},
+            'bitstream': {'type': str, 'default': "10000000001"}
+        }
+    },
+    "Digital to Digital: HDB3 Codec": {
+        'setup': hdb3_codec,
+        'description': "HDB3 scrambling and descrambling (4-zero substitution)",
+        'parameters': {
+            'baud_rate': {'type': float, 'default': 5.0},
+            'bitstream': {'type': str, 'default': "10000100001"}
+        }
+    },
+    **{
+        f"Digital to Digital: {enc.__name__.replace('Encoder', '')} Codec": {
             'setup': partial(generic_codec_setup, Encoder=enc, Decoder=dec),
             'description': ("Demonstrates "
                             f"{enc.__name__.replace('Encoder', '')} "
@@ -109,3 +170,4 @@ D2D_SCENARIOS: Dict[str, Scenario] = {
         for enc, dec in CODEC_PAIRS
     }
 }
+
