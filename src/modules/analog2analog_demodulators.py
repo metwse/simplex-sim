@@ -74,7 +74,7 @@ class FMDemodulator(Component):
 
 
 class PMDemodulator(Component):
-    """PM Demodulator using coherent detection."""
+    """PM Demodulator using coherent detection with phase unwrapping."""
 
     def __init__(self,
                  input_wire: Wire,
@@ -84,6 +84,15 @@ class PMDemodulator(Component):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
         self.phase_deviation = phase_deviation
+
+        self.reset()
+
+    def reset(self):
+        self.prev_phase = 0.0
+        self.unwrapped_phase = 0.0
+        self.dc_offset = 0.0
+        self.alpha_lpf = 0.1
+        self.alpha_dc = 0.001
 
     def tick(self, time: float):
         inp = self.input_wire.read()
@@ -96,5 +105,20 @@ class PMDemodulator(Component):
 
         phase = math.atan2(q_component, i_component)
 
-        message = phase / self.phase_deviation
+        phase_diff = phase - self.prev_phase
+        if phase_diff > math.pi:
+            phase_diff -= 2 * math.pi
+        elif phase_diff < -math.pi:
+            phase_diff += 2 * math.pi
+
+        self.unwrapped_phase += phase_diff
+        self.prev_phase = phase
+
+        self.dc_offset = (self.alpha_dc * self.unwrapped_phase +
+                          (1 - self.alpha_dc) * self.dc_offset)
+
+        phase_centered = self.unwrapped_phase - self.dc_offset
+
+        message = -phase_centered / self.phase_deviation
+
         self.output_wire.write(message, time)
