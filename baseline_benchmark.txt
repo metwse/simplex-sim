@@ -1,0 +1,38 @@
+Benchmarking 20 scenarios
+Steps per run: 5000
+Runs per scenario: 3
+Warmup runs: 1
+
+Scenario                                           Mean         Median       StdDev       Steps/s     
+==================================================================================================
+Digital to Digital Encoding                        27.8ms       27.6ms       380.9µs      179965.7
+Digital to Digital: B8ZS Codec                     10.7ms       11.1ms       657.7µs      466239.9
+Digital to Digital: HDB3 Codec                     10.2ms       10.2ms       1.3ms        487984.5
+Digital to Digital: Manchester Codec               15.5ms       15.5ms       54.2µs       322566.4
+Digital to Digital: NRZI Codec                     14.9ms       14.8ms       188.8µs      336302.3
+Digital to Digital: NRZL Codec                     13.8ms       13.6ms       349.7µs      362552.4
+Digital to Digital: BipolarAMI Codec               14.0ms       14.0ms       54.3µs       356818.5
+Digital to Digital: DifferentialManchester Codec   16.1ms       16.0ms       273.1µs      311006.5
+Digital to Digital: Pseudoternary Codec            14.3ms       14.3ms       163.4µs      349218.0
+Analog to Digital Encoding                         15.2ms       15.4ms       242.8µs      327869.4
+Analog to Digital: Delta Modulation Codec          14.0ms       14.0ms       33.9µs       358153.9
+Analog to Digital: PCM Codec                       24.2ms       18.6ms       10.1ms       206686.6
+Digital to Analog Modulation                       18.3ms       17.7ms       1.3ms        273302.6
+Digital to Analog: ASK Modem                       17.0ms       17.0ms       83.6µs       293702.3
+Digital to Analog: FSK Modem                       16.4ms       16.4ms       158.5µs      304369.0
+Digital to Analog: PSK Modem                       17.7ms       17.5ms       465.8µs      281819.2
+Analog to Analog Modulation                        17.5ms       17.5ms       107.6µs      285727.6
+Analog to Analog: AM Modem                         16.3ms       16.3ms       145.2µs      307168.7
+Analog to Analog: FM Modem                         17.1ms       17.1ms       128.8µs      292587.1
+Analog to Analog: PM Modem                         19.9ms       20.1ms       458.3µs      251495.0
+==================================================================================================
+
+Total time: 331.0ms
+Average time per scenario: 16.5ms
+Average throughput: 317776.8 steps/s
+
+Fastest: Digital to Digital: HDB3 Codec
+  10.2ms (487984.5 steps/s)
+
+Slowest: Digital to Digital Encoding
+  27.8ms (179965.7 steps/s)
