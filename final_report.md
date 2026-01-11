@@ -2,7 +2,7 @@
 
 **Project**: ITU Computer Communications - Simplex Data Link Simulation  
 **Date**: January 12, 2026  
-**Optimizer**: Gemini 2.0 Flash (Experimental - Thinking)  
+**Optimizer**: Claude Sonnet 4.5 (Thinking)
 **Duration**: ~1 hour  
 **Objective**: Optimize performance focusing on high-priority opportunities
 
