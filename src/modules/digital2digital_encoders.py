@@ -19,7 +19,7 @@ class NRZLEncoder(Component):
         self.low = low_level
 
     def tick(self, time: float):
-        inp = self.input_wire.read()
+        inp = self.input_wire.voltage
 
         if inp > 0.5:
             self.output_wire.write(self.low, time)
@@ -39,6 +39,7 @@ class NRZIEncoder(Component):
                  low_level: float = -1.0):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
+        self.rate = baud_rate
         self.high = high_level
         self.low = low_level
 
@@ -50,11 +51,11 @@ class NRZIEncoder(Component):
 
     def tick(self, time: float):
         # Calculate which bit number we are currently processing
-        current_bit_index = int(time / self.bit_duration)
+        current_bit_index = int(time * self.rate)
 
         # Check if we have entered a new bit period
         if current_bit_index > self.last_bit_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
             is_logic_1 = inp > 0.5
 
             if is_logic_1:
@@ -84,13 +85,14 @@ class ManchesterEncoder(Component):
                  baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
+        self.half_duration = self.bit_duration / 2.0
 
     def tick(self, time: float):
-        inp = self.input_wire.read()
+        inp = self.input_wire.voltage
         is_logic_1 = inp > 0.5
 
         cycle_pos = time % self.bit_duration
-        is_first_half = cycle_pos < (self.bit_duration / 2.0)
+        is_first_half = cycle_pos < self.half_duration
 
         if is_logic_1:
             voltage = -1.0 if is_first_half else 1.0
@@ -110,6 +112,7 @@ class BipolarAMIEncoder(Component):
     def __init__(self, input_wire: Wire, output_wire: Wire, baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
+        self.rate = baud_rate
 
         self.reset()
 
@@ -121,10 +124,10 @@ class BipolarAMIEncoder(Component):
         self.last_bit_index = -1
 
     def tick(self, time: float):
-        current_bit_index = int(time / self.bit_duration)
+        current_bit_index = int(time * self.rate)
 
         if current_bit_index > self.last_bit_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
             is_logic_1 = inp > 0.5
 
             if is_logic_1:
@@ -150,6 +153,7 @@ class PseudoternaryEncoder(Component):
     def __init__(self, input_wire: Wire, output_wire: Wire, baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
+        self.rate = baud_rate
 
         self.reset()
 
@@ -159,10 +163,10 @@ class PseudoternaryEncoder(Component):
         self.last_bit_index = -1
 
     def tick(self, time: float):
-        current_bit_index = int(time / self.bit_duration)
+        current_bit_index = int(time * self.rate)
 
         if current_bit_index > self.last_bit_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
             is_logic_1 = inp > 0.5
 
             if not is_logic_1:  # Logic 0
@@ -189,6 +193,8 @@ class DifferentialManchesterEncoder(Component):
     def __init__(self, input_wire: Wire, output_wire: Wire, baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.bit_duration = 1.0 / baud_rate
+        self.rate = baud_rate
+        self.half_duration = self.bit_duration / 2.0
 
         self.reset()
 
@@ -198,11 +204,11 @@ class DifferentialManchesterEncoder(Component):
         self.last_bit_index = -1
 
     def tick(self, time: float):
-        current_bit_index = int(time / self.bit_duration)
+        current_bit_index = int(time * self.rate)
 
         # Determine bit boundary
         if current_bit_index > self.last_bit_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
             is_logic_1 = inp > 0.5
 
             # Logic 0: Transition at beginning -> flip from previous end
@@ -216,7 +222,7 @@ class DifferentialManchesterEncoder(Component):
 
         # Determine position within the bit (first half or second half)
         cycle_pos = time % self.bit_duration
-        is_first_half = cycle_pos < (self.bit_duration / 2.0)
+        is_first_half = cycle_pos < self.half_duration
 
         if is_first_half:
             voltage = self.current_start_level

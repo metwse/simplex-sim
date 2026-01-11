@@ -6,10 +6,12 @@ class Wire:
     It stores the instantaneous value and the history for plotting.
     """
 
+    __slots__ = ['name', 'effects', 'voltage', 'history', 'time_axis', 'update']
+
     def __init__(self, name: str):
         self.name = name
 
-        self.effects: List[Component] = []
+        self.effects: set[Component] = set()
 
         self.reset()
 
@@ -47,13 +49,15 @@ class Component:
     This acts like a Verilog module.
     """
 
+    __slots__ = ['input_wire', 'output_wire']
+
     def __init__(self,
                  input_wire: Wire,
                  output_wire: Wire):
         self.input_wire = input_wire
         self.output_wire = output_wire
 
-        input_wire.effects.append(self)
+        input_wire.effects.add(self)
 
     def tick(self, time: float):
         """Equivalent to 'always @(posedge clk)'.

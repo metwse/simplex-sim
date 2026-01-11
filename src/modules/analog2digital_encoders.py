@@ -15,6 +15,7 @@ class DeltaModulationEncoder(Component):
                  step_size: float = 0.1):
         super().__init__(input_wire, output_wire)
         self.sample_period = 1.0 / sample_rate
+        self.sample_rate = sample_rate
         self.step_size = step_size
 
         self.reset()
@@ -25,10 +26,10 @@ class DeltaModulationEncoder(Component):
         self.current_bit = 0.0
 
     def tick(self, time: float):
-        sample_index = int(time / self.sample_period)
+        sample_index = int(time * self.sample_rate)
 
         if sample_index > self.last_sample_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
 
             if inp > self.approximation:
                 self.current_bit = 1.0
@@ -58,12 +59,15 @@ class PCMEncoder(Component):
                  v_max: float = 1.0):
         super().__init__(input_wire, output_wire)
         self.sample_period = 1.0 / sample_rate
+        self.sample_rate = sample_rate
         self.n_bits = n_bits
         self.v_min = v_min
         self.v_max = v_max
+        self.v_range_inv = 1.0 / (v_max - v_min)
 
         self.bit_period = self.sample_period / n_bits
-        self.n_levels = 2 ** n_bits
+        self.bit_rate = 1.0 / self.bit_period
+        self.n_levels_m1 = (2 ** n_bits) - 1
 
         self.reset()
 
@@ -72,20 +76,22 @@ class PCMEncoder(Component):
         self.last_sample_index = -1
 
     def tick(self, time: float):
-        sample_index = int(time / self.sample_period)
+        sample_index = int(time * self.sample_rate)
 
         if sample_index > self.last_sample_index:
-            inp = self.input_wire.read()
+            inp = self.input_wire.voltage
 
-            clamped = max(self.v_min, min(self.v_max, inp))
-            normalized = (clamped - self.v_min) / (self.v_max - self.v_min)
-
-            self.current_code = int(normalized * (self.n_levels - 1))
+            # Faster clamping
+            if inp < self.v_min: inp = self.v_min
+            elif inp > self.v_max: inp = self.v_max
+            
+            normalized = (inp - self.v_min) * self.v_range_inv
+            self.current_code = int(normalized * self.n_levels_m1)
             self.last_sample_index = sample_index
 
         time_in_sample = time % self.sample_period
-        bit_index = int(time_in_sample / self.bit_period)
-        bit_index = min(bit_index, self.n_bits - 1)
+        bit_index = int(time_in_sample * self.bit_rate)
+        if bit_index >= self.n_bits: bit_index = self.n_bits - 1
 
         bit_position = self.n_bits - 1 - bit_index
         bit_value = (self.current_code >> bit_position) & 1

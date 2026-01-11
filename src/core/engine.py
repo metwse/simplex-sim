@@ -55,7 +55,7 @@ class Simulation:
         self.input_wire.write_async(self.input_function(self.current_time),
                                     self.current_time)
 
-        updates = set(self.input_wire.effects)
+        updates = self.input_wire.effects.copy()
         while len(updates) > 0:
             to_update = list(updates)
             updates = set()

@@ -17,13 +17,14 @@ class ASKModulator(Component):
                  baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
+        self.omega = 2 * math.pi * carrier_freq
         self.bit_duration = 1.0 / baud_rate
 
     def tick(self, time: float):
-        bit = self.input_wire.read()
+        bit = self.input_wire.voltage
         amplitude = 1.0 if bit > 0.5 else 0.0
 
-        carrier = math.sin(2 * math.pi * self.carrier_freq * time)
+        carrier = math.sin(self.omega * time)
         self.output_wire.write(amplitude * carrier, time)
 
 
@@ -41,15 +42,15 @@ class FSKModulator(Component):
                  freq_1: float,
                  baud_rate: float):
         super().__init__(input_wire, output_wire)
-        self.freq_0 = freq_0
-        self.freq_1 = freq_1
+        self.omega_0 = 2 * math.pi * freq_0
+        self.omega_1 = 2 * math.pi * freq_1
         self.bit_duration = 1.0 / baud_rate
 
     def tick(self, time: float):
-        bit = self.input_wire.read()
-        freq = self.freq_1 if bit > 0.5 else self.freq_0
+        bit = self.input_wire.voltage
+        omega = self.omega_1 if bit > 0.5 else self.omega_0
 
-        signal = math.sin(2 * math.pi * freq * time)
+        signal = math.sin(omega * time)
         self.output_wire.write(signal, time)
 
 
@@ -67,11 +68,12 @@ class PSKModulator(Component):
                  baud_rate: float):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
+        self.omega = 2 * math.pi * carrier_freq
         self.bit_duration = 1.0 / baud_rate
 
     def tick(self, time: float):
-        bit = self.input_wire.read()
+        bit = self.input_wire.voltage
         phase = 0.0 if bit > 0.5 else math.pi
 
-        signal = math.sin(2 * math.pi * self.carrier_freq * time + phase)
+        signal = math.sin(self.omega * time + phase)
         self.output_wire.write(signal, time)

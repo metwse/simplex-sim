@@ -14,15 +14,17 @@ def create_digital_signal(bitstream: str,
 
     low, high = voltage_levels
     bit_duration = 1.0 / baud_rate
-    total_bits = len(bitstream)
+    
+    # Pre-calculate voltage sequence to avoid string parsing in loop
+    levels = tuple(high if bit == '1' else low for bit in bitstream)
+    total_bits = len(levels)
 
     def signal_func(time: float) -> float:
         if time < 0:
             return low
 
-        bit_index = int(time / bit_duration) % total_bits
-
-        return high if bitstream[bit_index] == '1' else low
+        bit_index = int(time * baud_rate) % total_bits
+        return levels[bit_index]
 
     return signal_func
 
@@ -38,10 +40,11 @@ def _encode_b8zs(bitstream: str) -> List[float]:
     result: List[float] = []
     last_polarity = 1.0
     i = 0
+    length = len(bitstream)
 
-    while i < len(bitstream):
-        if (i + 8 <= len(bitstream) and
-                bitstream[i:i+8] == '00000000'):
+    while i < length:
+        if (i + 8 <= length and
+                bitstream.startswith('00000000', i)):
             if last_polarity > 0:
                 result.extend([0, 0, 0, 1, -1, 0, -1, 1])
             else:
@@ -89,10 +92,11 @@ def _encode_hdb3(bitstream: str) -> List[float]:
     last_polarity = 1.0
     ones_since_sub = 0
     i = 0
+    length = len(bitstream)
 
-    while i < len(bitstream):
-        if (i + 4 <= len(bitstream) and
-                bitstream[i:i+4] == '0000'):
+    while i < length:
+        if (i + 4 <= length and
+                bitstream.startswith('0000', i)):
             if ones_since_sub % 2 == 1:
                 violation = last_polarity
                 result.extend([0, 0, 0, violation])

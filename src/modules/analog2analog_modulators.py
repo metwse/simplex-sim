@@ -18,11 +18,12 @@ class AMModulator(Component):
                  modulation_index: float = 0.5):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
+        self.omega = 2 * math.pi * carrier_freq
         self.modulation_index = modulation_index
 
     def tick(self, time: float):
-        message = self.input_wire.read()
-        carrier = math.cos(2 * math.pi * self.carrier_freq * time)
+        message = self.input_wire.voltage
+        carrier = math.cos(self.omega * time)
 
         envelope = 1.0 + self.modulation_index * message
         self.output_wire.write(envelope * carrier, time)
@@ -42,7 +43,8 @@ class FMModulator(Component):
                  freq_deviation: float = 10.0):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
-        self.freq_deviation = freq_deviation
+        self.omega_factor = 2 * math.pi * carrier_freq
+        self.dev_factor = 2 * math.pi * freq_deviation
 
         self.reset()
 
@@ -51,12 +53,12 @@ class FMModulator(Component):
         self.last_time = 0.0
 
     def tick(self, time: float):
-        message = self.input_wire.read()
+        message = self.input_wire.voltage
         dt = time - self.last_time
 
         if dt > 0:
-            inst_freq = self.carrier_freq + self.freq_deviation * message
-            self.phase_integral += 2 * math.pi * inst_freq * dt
+            inst_omega = self.omega_factor + self.dev_factor * message
+            self.phase_integral += inst_omega * dt
 
         signal = math.cos(self.phase_integral)
         self.output_wire.write(signal, time)
@@ -77,11 +79,12 @@ class PMModulator(Component):
                  phase_deviation: float = math.pi / 2):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
+        self.omega = 2 * math.pi * carrier_freq
         self.phase_deviation = phase_deviation
 
     def tick(self, time: float):
-        message = self.input_wire.read()
-        phase = 2 * math.pi * self.carrier_freq * time
+        message = self.input_wire.voltage
+        phase = self.omega * time
         phase += self.phase_deviation * message
 
         self.output_wire.write(math.cos(phase), time)
