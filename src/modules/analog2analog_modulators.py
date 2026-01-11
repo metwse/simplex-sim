@@ -2,6 +2,9 @@ from src.core.components import Component, Wire
 
 import math
 
+# Cache mathematical constants for performance
+TWO_PI = 2.0 * math.pi
+
 
 class AMModulator(Component):
     """Amplitude Modulation (AM).
@@ -19,10 +22,12 @@ class AMModulator(Component):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
         self.modulation_index = modulation_index
+        # Cache angular frequency for performance
+        self.omega = TWO_PI * carrier_freq
 
     def tick(self, time: float):
         message = self.input_wire.read()
-        carrier = math.cos(2 * math.pi * self.carrier_freq * time)
+        carrier = math.cos(self.omega * time)
 
         envelope = 1.0 + self.modulation_index * message
         self.output_wire.write(envelope * carrier, time)
@@ -43,6 +48,8 @@ class FMModulator(Component):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
         self.freq_deviation = freq_deviation
+        # Cache TWO_PI locally for faster access
+        self.two_pi = TWO_PI
 
         self.reset()
 
@@ -56,7 +63,7 @@ class FMModulator(Component):
 
         if dt > 0:
             inst_freq = self.carrier_freq + self.freq_deviation * message
-            self.phase_integral += 2 * math.pi * inst_freq * dt
+            self.phase_integral += self.two_pi * inst_freq * dt
 
         signal = math.cos(self.phase_integral)
         self.output_wire.write(signal, time)
@@ -78,10 +85,12 @@ class PMModulator(Component):
         super().__init__(input_wire, output_wire)
         self.carrier_freq = carrier_freq
         self.phase_deviation = phase_deviation
+        # Cache angular frequency for performance
+        self.omega = TWO_PI * carrier_freq
 
     def tick(self, time: float):
         message = self.input_wire.read()
-        phase = 2 * math.pi * self.carrier_freq * time
+        phase = self.omega * time
         phase += self.phase_deviation * message
 
         self.output_wire.write(math.cos(phase), time)

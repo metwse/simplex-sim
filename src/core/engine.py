@@ -55,18 +55,26 @@ class Simulation:
         self.input_wire.write_async(self.input_function(self.current_time),
                                     self.current_time)
 
-        updates = set(self.input_wire.effects)
-        while len(updates) > 0:
-            to_update = list(updates)
-            updates = set()
-
+        #  Optimized propagation with pre-allocated lists
+        to_update = list(self.input_wire.effects)
+        next_updates = []
+        
+        while to_update:
+            # Process all components that need updating
             for component in to_update:
                 component.tick(self.current_time)
 
+            # Collect wires that were updated and their effects
+            # Only iterate through wires that could have been updated
             for wire in self.wires:
                 if wire.update:
                     wire.update = False
-                    updates.update(wire.effects)
+                    # Extend instead of update to avoid set operations
+                    next_updates.extend(wire.effects)
+            
+            # Swap lists instead of creating new ones
+            to_update, next_updates = next_updates, to_update
+            next_updates.clear()
 
         self.current_time += self.dt
 

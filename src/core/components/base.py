@@ -1,4 +1,5 @@
 from typing import List
+from collections import deque
 
 
 class Wire:
@@ -18,9 +19,9 @@ class Wire:
         connected to it."""
         self.voltage = value
 
-        # Record history for visualization
-        self.history.append(value)
-        self.time_axis.append(timestamp)
+        # Record history for visualization - using deque for O(1) append
+        self._history_deque.append(value)
+        self._time_deque.append(timestamp)
 
     def write(self, value: float, timestamp: float):
         """Updates the wire's voltage."""
@@ -32,11 +33,29 @@ class Wire:
         """Returns the current voltage on the wire."""
         return self.voltage
 
+    @property
+    def history(self) -> List[float]:
+        """Convert deque to list only when accessed (lazy conversion)"""
+        if self._history_cache is None:
+            self._history_cache = list(self._history_deque)
+        return self._history_cache
+
+    @property
+    def time_axis(self) -> List[float]:
+        """Convert deque to list only when accessed (lazy conversion)"""
+        if self._time_cache is None:
+            self._time_cache = list(self._time_deque)
+        return self._time_cache
+
     def reset(self):
         """Clears the history and wire state."""
         self.voltage: float = 0.0
-        self.history: List[float] = []
-        self.time_axis: List[float] = []
+        # Use deque for O(1) append operations
+        self._history_deque = deque()
+        self._time_deque = deque()
+        # Cache for lazy conversion to list
+        self._history_cache = None
+        self._time_cache = None
         self.update = False
 
 

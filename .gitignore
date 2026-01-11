@@ -1,2 +1,5 @@
 __pycache__
 venv
+baseline_benchmark.txt
+final_benchmark.txt
+optimization_comparison.png
