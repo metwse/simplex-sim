@@ -34,7 +34,7 @@ class ASKDemodulator(Component):
             self.sample_count = 0
             self.last_bit_index = bit_index
 
-        self.accumulator += abs(self.input_wire.read())
+        self.accumulator += abs(self.input_wire.voltage)
         self.sample_count += 1
 
         self.output_wire.write(self.decoded_bit, time)
@@ -65,7 +65,7 @@ class FSKDemodulator(Component):
 
     def tick(self, time: float):
         bit_index = int(time / self.bit_duration)
-        current = self.input_wire.read()
+        current = self.input_wire.voltage
 
         if bit_index > self.last_bit_index:
             if self.last_bit_index >= 0:
@@ -115,7 +115,7 @@ class PSKDemodulator(Component):
             self.last_bit_index = bit_index
 
         ref = math.sin(2 * math.pi * self.carrier_freq * time)
-        self.accumulator += self.input_wire.read() * ref
+        self.accumulator += self.input_wire.voltage * ref
         self.sample_count += 1
 
         self.output_wire.write(self.decoded_bit, time)

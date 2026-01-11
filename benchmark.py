@@ -18,8 +18,14 @@ def benchmark_scenario(scenario: Scenario, params: dict,
         sim = scenario['setup'](**params)
 
         start = time.perf_counter()
-        for _ in range(num_steps):
-            sim.advance()
+        if hasattr(sim, 'advance_batch'):
+            batch_size = getattr(sim, 'batch_size', 1000)
+            num_batches = (num_steps + batch_size - 1) // batch_size
+            for _ in range(num_batches):
+                sim.advance_batch()
+        else:
+            for _ in range(num_steps):
+                sim.advance()
         elapsed = time.perf_counter() - start
 
         times.append(elapsed)
@@ -98,6 +104,9 @@ def main():
         if args.warmup > 0:
             for _ in range(args.warmup):
                 sim = scenario['setup'](**params)
+            if hasattr(sim, 'advance_batch'):
+                sim.advance_batch()
+            else:
                 for _ in range(min(100, args.steps)):
                     sim.advance()
 

@@ -1,3 +1,5 @@
 matplotlib
 graphviz
 pillow
+numpy
+numba

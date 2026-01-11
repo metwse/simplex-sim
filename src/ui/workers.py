@@ -20,8 +20,13 @@ class SimulationThread(threading.Thread):
         current_step = 0
 
         while current_step < total_steps and not self.stop_requested:
-            self.sim.advance()
-            current_step += 1
+            if hasattr(self.sim, 'advance_batch'):
+                self.sim.advance_batch()
+                # Batch advances by self.sim.batch_size usually
+                current_step += getattr(self.sim, 'batch_size', 100)
+            else:
+                self.sim.advance()
+                current_step += 1
 
             self.progress = (current_step / total_steps) * 100
 

@@ -22,7 +22,7 @@ class AMDemodulator(Component):
         self.alpha = 0.02
 
     def tick(self, time: float):
-        inp = abs(self.input_wire.read())
+        inp = abs(self.input_wire.voltage)
 
         self.envelope = self.alpha * inp + (1 - self.alpha) * self.envelope
 
@@ -53,7 +53,7 @@ class FMDemodulator(Component):
         self.alpha = 0.05
 
     def tick(self, time: float):
-        current = self.input_wire.read()
+        current = self.input_wire.voltage
 
         if self.prev_value <= 0 < current:
             if self.last_crossing_time > 0:
@@ -95,7 +95,7 @@ class PMDemodulator(Component):
         self.alpha_dc = 0.001
 
     def tick(self, time: float):
-        inp = self.input_wire.read()
+        inp = self.input_wire.voltage
 
         ref_cos = math.cos(2 * math.pi * self.carrier_freq * time)
         ref_sin = math.sin(2 * math.pi * self.carrier_freq * time)
