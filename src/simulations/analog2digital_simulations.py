@@ -1,6 +1,6 @@
 from .types import Scenario
 
-from src.core.components.base import Wire
+from src.core.components import Wire
 from src.core.engine import Simulation
 from src.modules.analog2digital_encoders import \
     DeltaModulationEncoder, PCMEncoder

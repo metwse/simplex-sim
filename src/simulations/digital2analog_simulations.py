@@ -1,6 +1,6 @@
 from .types import Scenario
 
-from src.core.components.base import Wire
+from src.core.components import Wire
 from src.core.engine import Simulation
 from src.modules.generators import create_digital_signal
 from src.modules.digital2analog_modulators import \

@@ -1,6 +1,6 @@
 from .types import Scenario
 
-from src.core.components.base import Wire
+from src.core.components import Wire
 from src.core.engine import Simulation
 from src.modules.generators import create_digital_signal, \
     create_b8zs_signal, create_hdb3_signal
